@@ -1,40 +1,40 @@
+import math 
 import numpy as np
 import matplotlib.pyplot as plt
+# http://nghiaho.com/?page_id=671
 
-def match_point_set(points_template, points_test):
-    # http://nghiaho.com/?page_id=671
-    points_template_np = points_template.copy()
-    centroid_template_np = np.mean(points_template_np, axis = 0)
-    points_template_np -= centroid_template_np
-
-    points_test_np = points_test.copy()
-    centroid_test_np = np.mean(points_test_np, axis = 0)
-    points_test_np -= centroid_test_np
-    npts = points_template_np.shape[0]
-    points_test_t_np = points_test_np.transpose()
-    cov_mat = np.zeros((2,2))
-    for ii in range(0,npts):
-        a= np.matrix(points_template_np[ii,:]).transpose()
-        b=np.matrix(points_test_t_np[:,ii])
-        c= a*b
-        cov_mat += c
-    u,s,v = np.linalg.svd(cov_mat)
-    return v.T * u.T
-
-points_template_np = np.array([[0,1.0],[2.0,2.0],[1.0,0]])
-rot_angle = np.pi/4
-#c,-s
-#s,c
-rot_mat_np = np.array([[np.cos(rot_angle),-np.sin(rot_angle)],[np.sin(rot_angle),np.cos(rot_angle)]])
-rotated_pts_np = rot_mat_np.dot(points_template_np.transpose()).transpose()
-
-evaled_rot_mat_np = match_point_set(points_template_np,rotated_pts_np)
-print("real rot mat:{}, \n evaled rot mat:{}".format(rot_mat_np,evaled_rot_mat_np))
-guess_rotated_pt_np = evaled_rot_mat_np.dot((rotated_pts_np- np.mean(rotated_pts_np, axis = 0)).transpose()).transpose()
-print(guess_rotated_pt_np)
 fig = plt.figure()
-plt.axis("equal")
-plt.plot(points_template_np[:,0],points_template_np[:,1],"-go")
-plt.plot(rotated_pts_np[:,0],rotated_pts_np[:,1],"-bo")
-plt.plot(guess_rotated_pt_np[:,0],guess_rotated_pt_np[:,1],"-ro")
+axes1 = plt.subplot(111)
+axes1.axis("equal")
+
+original_pts_np = np.mat([[0,1.0],[2.0,2.0],[1.0,0]])
+rot_angle = np.pi/4.0
+c = math.cos(rot_angle)
+s = math.sin(rot_angle)
+ground_truth_rot_mat = np.mat([[c,-s],[s,c]])
+pts_after_rotate_np = (ground_truth_rot_mat * original_pts_np.T).T
+axes1.plot(original_pts_np[:,0],original_pts_np[:,1],"-go")
+axes1.plot(pts_after_rotate_np[:,0],pts_after_rotate_np[:,1],"-ro")
+axes1.annotate("before rotate", xy=(original_pts_np[1,0], original_pts_np[1,1]))
+axes1.annotate("after rotate", xy=(pts_after_rotate_np[1,0], pts_after_rotate_np[1,1]))
+
+
+u,s,v = np.linalg.svd(original_pts_np.T * pts_after_rotate_np)
+guess_rot_mat= v.T* u.T
+
+vec1_a = np.stack([np.array([[0,0]]),u[0,:]])
+vec1_b = np.stack([np.array([[0,0]]), u[1,:]])
+axes1.plot(vec1_a[:,0],vec1_a[:,1],"-g")
+axes1.plot(vec1_b[:,0],vec1_b[:,1],"-g")
+axes1.annotate("u", xy=(u[0,0], u[0,1]))
+
+vec2_a = np.stack([np.array([[0,0]]),v[0,:]])
+vec2_b = np.stack([np.array([[0,0]]), v[1,:]])
+axes1.plot(vec2_a[:,0],vec2_a[:,1],"-r")
+axes1.plot(vec2_b[:,0],vec2_b[:,1],"-r")
+axes1.annotate("v", xy=(v[1,0], v[1,1]))
+
+
+print(ground_truth_rot_mat - guess_rot_mat)
+
 plt.show()
