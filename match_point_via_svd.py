@@ -7,19 +7,21 @@ fig = plt.figure()
 axes1 = plt.subplot(111)
 axes1.axis("equal")
 
-original_pts_np = np.mat([[0,1.0],[2.0,2.0],[1.0,0]])
+original_pts_np = np.mat([[0,1.5],[2.0,2.0],[1.5,0]])
 rot_angle = np.pi/4.0
 c = math.cos(rot_angle)
 s = math.sin(rot_angle)
 ground_truth_rot_mat = np.mat([[c,-s],[s,c]])
 pts_after_rotate_np = (ground_truth_rot_mat * original_pts_np.T).T
+
 axes1.plot(original_pts_np[:,0],original_pts_np[:,1],"-go")
 axes1.plot(pts_after_rotate_np[:,0],pts_after_rotate_np[:,1],"-ro")
 axes1.annotate("before rotate", xy=(original_pts_np[1,0], original_pts_np[1,1]))
 axes1.annotate("after rotate", xy=(pts_after_rotate_np[1,0], pts_after_rotate_np[1,1]))
 
-
-u,s,v = np.linalg.svd(original_pts_np.T * pts_after_rotate_np)
+covariance_mat = original_pts_np.T * pts_after_rotate_np
+u,s,v = np.linalg.svd(covariance_mat)
+# u, v:(2, 2)
 guess_rot_mat= v.T* u.T
 
 vec1_a = np.stack([np.array([[0,0]]),u[0,:]])
